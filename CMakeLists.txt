@@ -33,9 +33,10 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/antlr4_runtime/runtime/src
 )
 
-file(GLOB sources
-    *.cpp
-    *.h
+set(sources
+    main.cpp
+    formula.cpp
+    FormulaAST.cpp 
 )
 
 add_executable(
