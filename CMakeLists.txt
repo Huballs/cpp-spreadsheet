@@ -37,6 +37,9 @@ set(sources
     main.cpp
     formula.cpp
     FormulaAST.cpp 
+    cell.cpp
+    sheet.cpp
+    structures.cpp
 )
 
 add_executable(

@@ -13,7 +13,6 @@ std::ostream& operator<<(std::ostream& output, FormulaError fe) {
     return output << "#DIV/0!";
 }
 
-namespace {
 class Formula : public FormulaInterface {
 public:
     
@@ -39,8 +38,6 @@ public:
 private:
     FormulaAST ast_;
 };
-    
-}//end namespace
 
 std::unique_ptr<FormulaInterface> ParseFormula(std::string expression) {
     return std::make_unique<Formula>(std::move(expression));
