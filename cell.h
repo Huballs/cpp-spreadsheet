@@ -5,8 +5,8 @@
 
 class Cell : public CellInterface {
 public:
-    Cell();
-    ~Cell();
+    Cell() : impl_(std::make_unique<EmptyImpl>()) {}
+    ~Cell() = default;
 
     void Set(std::string text);
     void Clear();

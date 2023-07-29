@@ -1,26 +1,20 @@
-#include "cell.h"
-
 #include <cassert>
 #include <iostream>
 #include <string>
 #include <optional>
 
-Cell::Cell() : impl_(std::make_unique<EmptyImpl>()) {}
-Cell::~Cell() = default;
+#include "cell.h"
 
 void Cell::Set(std::string text) {
     
     if (text.empty()) {
         impl_ = std::make_unique<EmptyImpl>();
-        return;
         
     } else if (text.size() >= 2 && text.at(0) == FORMULA_SIGN) {
         impl_ = std::move(std::make_unique<FormulaImpl>(std::move(text)));
-        return;
         
     } else {
         impl_ = std::move(std::make_unique<TextImpl>(std::move(text)));
-        return;
     }
 }
 
@@ -38,7 +32,7 @@ Cell::TextImpl::TextImpl(std::string text) : text_(std::move(text)) {}
 
 Cell::Value Cell::TextImpl::GetValue() const {
     if (text_.empty()) {
-        throw std::logic_error("it is empty impl, not text");
+        throw std::logic_error("Empty text");
         
     } else if (text_.at(0) == ESCAPE_SIGN) {
         return text_.substr(1);
