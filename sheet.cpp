@@ -31,7 +31,7 @@ void Sheet::SetCell(Position pos, std::string text) {
         cells_[pos.row][pos.col]->Set(std::move(text));
         
     } else {
-        throw InvalidPositionException("Invalid cell position");
+        throw InvalidPositionException("On SetCell");
     }    
 }
 
@@ -49,7 +49,7 @@ const CellInterface* Sheet::GetCell(Position pos) const {
         return nullptr;
         
     } else {
-        throw InvalidPositionException("Invalid cell position");
+        throw InvalidPositionException("On GetCell");
     }
 }
 
@@ -67,7 +67,7 @@ CellInterface* Sheet::GetCell(Position pos) {
         return nullptr;
         
     } else {
-        throw InvalidPositionException("Invalid cell position");
+        throw InvalidPositionException("On GetCell");
     }
 }
 
@@ -82,7 +82,7 @@ void Sheet::ClearCell(Position pos) {
         }
         
     } else {    
-        throw InvalidPositionException("Invalid cell position");
+        throw InvalidPositionException("On ClearCell");
     } 
 }
 
