@@ -10,9 +10,14 @@ const int MAX_POS_LETTER_COUNT = 3;
 
 const Position Position::NONE = {-1, -1};
 
+bool Size::operator==(Size rhs) const {
+    return (rows == rhs.rows)
+        && (cols == rhs.cols);
+}
+
 bool Position::operator==(const Position rhs) const {
-    return row == rhs.row 
-        && col == rhs.col;
+    return (row == rhs.row) 
+        && (col == rhs.col);
 }
 
 bool Position::operator<(const Position rhs) const {
@@ -20,10 +25,10 @@ bool Position::operator<(const Position rhs) const {
 }
 
 bool Position::IsValid() const {
-    return row >= 0 
-        && col >= 0 
-        && row < MAX_ROWS 
-        && col < MAX_COLS;
+    return (row >= 0) 
+        && (col >= 0)
+        && (row < MAX_ROWS)
+        && (col < MAX_COLS);
 }
 
 std::string Position::ToString() const {
@@ -73,9 +78,4 @@ Position Position::FromString(std::string_view str) {
     }
 
     return {row - 1, col - 1};
-}
-
-bool Size::operator==(Size rhs) const {
-    return cols == rhs.cols 
-        && rows == rhs.rows;
 }
