@@ -1,11 +1,10 @@
-#include "formula.h"
-
-#include "FormulaAST.h"
-
 #include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <sstream>
+
+#include "formula.h"
+#include "FormulaAST.h"
 
 using namespace std::literals;
 

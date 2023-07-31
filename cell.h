@@ -1,11 +1,13 @@
 #pragma once
 
+
+#include <set>
 #include "common.h"
 #include "formula.h"
 
 class Cell : public CellInterface {
 public:
-    Cell() : impl_(std::make_unique<EmptyImpl>()) {}
+    Cell(SheetInterface& sheet) : impl_(std::make_unique<EmptyImpl>()), sheet_(sheet) {}
     ~Cell() = default;
 
     void Set(std::string text);
@@ -13,6 +15,7 @@ public:
 
     Value GetValue() const override;
     std::string GetText() const override;
+    std::vector<Position> GetReferencedCells() const override;
 
 private:
     
@@ -21,6 +24,7 @@ private:
         
         virtual Value GetValue() const = 0;
         virtual std::string GetText() const = 0;
+        virtual std::vector<Position> GetReferencedCells() const;
         
         virtual ~Impl() = default;
     };
@@ -49,10 +53,23 @@ private:
         explicit FormulaImpl(std::string text);
         Value GetValue() const override;
         std::string GetText() const override;
+
+        std::vector<Position> GetReferencedCells() const override;
         
     private:
         std::unique_ptr<FormulaInterface> formula_ptr_;        
     };
     
     std::unique_ptr<Impl> impl_;
+    SheetInterface& sheet_;
+
+    std::optional<Value> cache_; 
+
+    std::set<Cell*> cells_dep_;
+    std::set<Cell*> cells_ref_;	
+
+    void RefreshCells();
+    void InvalidateCache();
+    bool CheckCircularDependecy(Impl& impl);
+
 };

@@ -3,12 +3,12 @@
 #include "FormulaLexer.h"
 #include "common.h"
 
-#include <forward_list>
+#include <vector>
 #include <functional>
 #include <stdexcept>
 
 namespace ASTImpl {
-class Expr;
+    class Expr;
 }
 
 class ParsingError : public std::runtime_error {
@@ -26,8 +26,11 @@ public:
     void Print(std::ostream& out) const;
     void PrintFormula(std::ostream& out) const;
 
+    std::vector<Position>& GetCells();
+
 private:
     std::unique_ptr<ASTImpl::Expr> root_expr_;
+    std::vector<Position> cells_;
 };
 
 FormulaAST ParseFormulaAST(std::istream& in);
