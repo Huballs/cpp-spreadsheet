@@ -50,23 +50,23 @@ private:
     class FormulaImpl : public Impl {
     public:
         
-        explicit FormulaImpl(std::string text);
+        explicit FormulaImpl(std::string text, SheetInterface& sheet);
         Value GetValue() const override;
         std::string GetText() const override;
 
         std::vector<Position> GetReferencedCells() const override;
         
     private:
-        std::unique_ptr<FormulaInterface> formula_ptr_;        
+        std::unique_ptr<FormulaInterface> formula_ptr_;  
+        FormulaInterface::Value cache_;
+        SheetInterface& sheet_;      
     };
     
     std::unique_ptr<Impl> impl_;
     SheetInterface& sheet_;
 
-    std::optional<Value> cache_; 
-
-    std::set<Cell*> cells_dep_;
-    std::set<Cell*> cells_ref_;	
+    std::set<Cell*> cells_deps_;
+    std::set<Cell*> cells_refs_;	
 
     void RefreshCells();
     void InvalidateCache();

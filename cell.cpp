@@ -42,23 +42,25 @@ Cell::Value Cell::TextImpl::GetValue() const {
     }      
 }
 
+Cell::Value Cell::FormulaImpl::GetValue() const {             
+    auto result = formula_ptr_->Evaluate(sheet_);
+    
+    if (std::holds_alternative<double>(result)) {
+        return std::get<double>(result);
+    } else {
+        return std::get<FormulaError>(result);  
+    }       
+}
+
 std::string Cell::TextImpl::GetText() const {
     return text_;
-    }
-
-Cell::FormulaImpl::FormulaImpl(std::string text) 
-    : formula_ptr_(ParseFormula(text.substr(1))) {}
-
-Cell::Value Cell::FormulaImpl::GetValue() const {             
-    auto helper = formula_ptr_->Evaluate();
-    
-    if (std::holds_alternative<double>(helper)) {
-        return std::get<double>(helper);
-    } else {
-        return std::get<FormulaError>(helper);  
-    }       
 }
 
 std::string Cell::FormulaImpl::GetText() const {
     return FORMULA_SIGN + formula_ptr_->GetExpression();
-    }
+}
+
+Cell::FormulaImpl::FormulaImpl(std::string text, SheetInterface& sheet) 
+    : formula_ptr_(ParseFormula(text.substr(1))), sheet_(sheet) {}
+
+
