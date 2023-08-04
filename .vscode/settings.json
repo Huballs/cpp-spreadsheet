@@ -71,6 +71,9 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "semaphore": "cpp",
-        "cassert": "cpp"
+        "cassert": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "future": "cpp"
     }
 }

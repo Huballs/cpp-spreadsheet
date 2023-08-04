@@ -58,17 +58,19 @@ private:
         
     private:
         std::unique_ptr<FormulaInterface> formula_ptr_;  
-        FormulaInterface::Value cache_;
+
         SheetInterface& sheet_;      
     };
     
     std::unique_ptr<Impl> impl_;
     SheetInterface& sheet_;
 
-    std::set<Cell*> cells_deps_;
-    std::set<Cell*> cells_refs_;	
+    std::set<Cell*> dependant_cells_;   // зависящие от этой ячейки, при изменении значения в этой ячейке во всех dependant cells вызывается метод InvalidateCache()
+    std::set<Position> all_cell_refs_;  // все ячейки входящие в эту включая вложенные, для поиска циклических зависимостей
 
-    void RefreshCells();
+    FormulaInterface::Value cache_;
+    bool isCacheValid = false;
+
     void InvalidateCache();
     bool CheckCircularDependecy(Impl& impl);
 
