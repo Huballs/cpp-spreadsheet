@@ -71,6 +71,7 @@ private:
     FormulaInterface::Value cache_;
     bool isCacheValid = false;
 
+    std::vector<Position> GetReferencedCells();
     void InvalidateCache();
     bool CheckCircularDependecy(Impl& impl);
 

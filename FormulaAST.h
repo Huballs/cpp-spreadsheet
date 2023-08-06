@@ -3,7 +3,7 @@
 #include "FormulaLexer.h"
 #include "common.h"
 
-#include <vector>
+#include <forward_list>
 #include <functional>
 #include <stdexcept>
 
@@ -22,15 +22,16 @@ public:
     FormulaAST& operator=(FormulaAST&&) = default;
     ~FormulaAST();
 
-    double Execute() const;
+    double Execute(std::function<double(Position)>& args) const;
     void Print(std::ostream& out) const;
     void PrintFormula(std::ostream& out) const;
 
-    std::vector<Position>& GetCells();
+    std::forward_list<Position>& GetCells() {return cells_;}
+    const std::forward_list<Position>& GetCells() const {return cells_;}
 
 private:
     std::unique_ptr<ASTImpl::Expr> root_expr_;
-    std::vector<Position> cells_;
+    std::forward_list<Position> cells_;
 };
 
 FormulaAST ParseFormulaAST(std::istream& in);

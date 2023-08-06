@@ -72,7 +72,7 @@ public:
     virtual ~Expr() = default;
     virtual void Print(std::ostream& out) const = 0;
     virtual void DoPrintFormula(std::ostream& out, ExprPrecedence precedence) const = 0;
-    virtual double Evaluate() const = 0;
+    virtual double Evaluate(std::function<double(Position)>& args) const = 0;
 
     // higher is tighter
     virtual ExprPrecedence GetPrecedence() const = 0;
@@ -144,28 +144,28 @@ public:
 
 // Реализуйте метод Evaluate() для бинарных операций.
 // При делении на 0 выбрасывайте ошибку вычисления FormulaError
-    double Evaluate() const override {
+    double Evaluate(std::function<double(Position)>& args) const override {
 
          switch (type_) {
                 
             case Add:
-                return lhs_->Evaluate() + rhs_->Evaluate();
+                return lhs_->Evaluate(args) + rhs_->Evaluate(args);
                 
             case Subtract:
-                return lhs_->Evaluate() - rhs_->Evaluate();
+                return lhs_->Evaluate(args) - rhs_->Evaluate(args);
                 
             case Multiply:
-                return lhs_->Evaluate() * rhs_->Evaluate();
+                return lhs_->Evaluate(args) * rhs_->Evaluate(args);
             
             case Divide:
                 
-                if (rhs_->Evaluate() == 0) 
-                    throw FormulaError("DIV/0");
+                if (rhs_->Evaluate(args) == 0) 
+                    throw FormulaError(FormulaError::Category::Div0);
                 
-                return lhs_->Evaluate() / rhs_->Evaluate(); 
+                return lhs_->Evaluate(args) / rhs_->Evaluate(args); 
                 
             default:
-                throw FormulaError("unidentified operation type");
+                throw std::invalid_argument("Unidentified operation type");
         }
     }
 
@@ -204,23 +204,52 @@ public:
     }
 
 // Реализуйте метод Evaluate() для унарных операций.
-    double Evaluate() const override {
+    double Evaluate(std::function<double(Position)>& args) const override {
         switch (type_) {
                 
             case UnaryPlus:
-                return operand_->Evaluate();
+                return operand_->Evaluate(args);
                 
             case UnaryMinus:
-                return -operand_->Evaluate(); 
+                return -operand_->Evaluate(args); 
             
             default:
-                throw FormulaError("unidentified operation type");
+                throw std::invalid_argument("Unidentified operation type");
         }
     }
 
 private:
     Type type_;
     std::unique_ptr<Expr> operand_;
+};
+
+class CellExpr final : public Expr {
+public:
+    
+    explicit CellExpr(const Position* cell) : cell_(cell) {}
+ 
+    void Print(std::ostream& out) const override {
+        if (!cell_->IsValid()) {
+            out << FormulaError::Category::Ref;
+        } else {
+            out << cell_->ToString();
+        }
+    }
+ 
+    void DoPrintFormula(std::ostream& out, ExprPrecedence) const override {
+        Print(out);
+    }
+    
+    ExprPrecedence GetPrecedence() const override {
+        return EP_ATOM;
+    }
+ 
+    double Evaluate(std::function<double(Position)>& args) const override {
+        return args(*cell_);
+    }
+ 
+private:
+    const Position* cell_;
 };
 
 class NumberExpr final : public Expr {
@@ -242,7 +271,7 @@ public:
     }
 
 // Для чисел метод возвращает значение числа.
-    double Evaluate() const override {
+    double Evaluate(std::function<double(Position)>&) const override {
         return value_;
     }
 
@@ -377,8 +406,8 @@ void FormulaAST::PrintFormula(std::ostream& out) const {
     root_expr_->PrintFormula(out, ASTImpl::EP_ATOM);
 }
 
-double FormulaAST::Execute() const {
-    return root_expr_->Evaluate();
+double FormulaAST::Execute(std::function<double(Position)>& args) const {
+    return root_expr_->Evaluate(args);
 }
 
 FormulaAST::FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr)
