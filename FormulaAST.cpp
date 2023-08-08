@@ -122,7 +122,7 @@ public:
     void DoPrintFormula(std::ostream& out, ExprPrecedence precedence) const override {
         lhs_->PrintFormula(out, precedence);
         out << static_cast<char>(type_);
-        rhs_->PrintFormula(out, precedence, /* right_child = */ true);
+        rhs_->PrintFormula(out, precedence,  true);
     }
 
     ExprPrecedence GetPrecedence() const override {
@@ -142,8 +142,6 @@ public:
         }
     }
 
-// Реализуйте метод Evaluate() для бинарных операций.
-// При делении на 0 выбрасывайте ошибку вычисления FormulaError
     double Evaluate(std::function<double(Position)>& args) const override {
 
          switch (type_) {
@@ -289,6 +287,10 @@ public:
         return root;
     }
 
+    std::forward_list<Position> MoveCells() {
+        return std::move(cells_);
+    }
+
 public:
     void exitUnaryOp(FormulaParser::UnaryOpContext* ctx) override {
         assert(args_.size() >= 1);
@@ -308,10 +310,13 @@ public:
     }
 
     void exitLiteral(FormulaParser::LiteralContext* ctx) override {
+
         double value = 0;
         auto valueStr = ctx->NUMBER()->getSymbol()->getText();
+
         std::istringstream in(valueStr);
         in >> value;
+        
         if (!in) {
             throw ParsingError("Invalid number: " + valueStr);
         }
@@ -344,12 +349,25 @@ public:
         args_.back() = std::move(node);
     }
 
+    void exitCell(FormulaParser::CellContext* ctx) override {
+        auto value_str = ctx->CELL()->getSymbol()->getText();
+        auto value = Position::FromString(value_str);
+        if (!value.IsValid()) {
+            throw FormulaException("Invalid position: " + value_str);
+        }
+
+        cells_.push_front(value);
+        auto node = std::make_unique<CellExpr>(&cells_.front());
+        args_.push_back(std::move(node));
+    }
+
     void visitErrorNode(antlr4::tree::ErrorNode* node) override {
         throw ParsingError("Error when parsing: " + node->getSymbol()->getText());
     }
 
 private:
     std::vector<std::unique_ptr<Expr>> args_;
+    std::forward_list<Position> cells_;
 };
 
 class BailErrorListener : public antlr4::BaseErrorListener {
@@ -386,7 +404,7 @@ FormulaAST ParseFormulaAST(std::istream& in) {
     ASTImpl::ParseASTListener listener;
     tree::ParseTreeWalker::DEFAULT.walk(&listener, tree);
 
-    return FormulaAST(listener.MoveRoot());
+    return FormulaAST(listener.MoveRoot(), listener.MoveCells());
 }
 
 FormulaAST ParseFormulaAST(const std::string& in_str) {
@@ -396,6 +414,12 @@ FormulaAST ParseFormulaAST(const std::string& in_str) {
     } catch (const std::exception& exc) {
         std::throw_with_nested(FormulaException(exc.what()));
     }
+}
+
+FormulaAST::FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr, std::forward_list<Position> cells) 
+    : root_expr_(std::move(root_expr)), cells_(std::move(cells)) {
+        
+        cells_.sort();
 }
 
 void FormulaAST::Print(std::ostream& out) const {
@@ -408,10 +432,6 @@ void FormulaAST::PrintFormula(std::ostream& out) const {
 
 double FormulaAST::Execute(std::function<double(Position)>& args) const {
     return root_expr_->Evaluate(args);
-}
-
-FormulaAST::FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr)
-    : root_expr_(std::move(root_expr)) {
 }
 
 FormulaAST::~FormulaAST() = default;

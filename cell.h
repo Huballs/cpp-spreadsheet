@@ -24,7 +24,7 @@ private:
         
         virtual Value GetValue() const = 0;
         virtual std::string GetText() const = 0;
-        virtual std::vector<Position> GetReferencedCells() const;
+        virtual std::vector<Position> GetReferencedCells() const { return {};};
         
         virtual ~Impl() = default;
     };
