@@ -109,7 +109,9 @@ public:
         for (const auto& cell : ast_.GetCells()) {
             
             if (cell.IsValid()) {
-                cells.push_back(cell);
+                if(cells.size() == 0 
+                || (cells.size() && !(cell == cells.back())))
+                    cells.push_back(cell);
             } else {
                 continue;
             }

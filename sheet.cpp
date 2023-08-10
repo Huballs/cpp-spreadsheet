@@ -6,7 +6,7 @@
 #include "sheet.h"
 #include "common.h"
 
-inline bool Sheet::CheckCellPosition(const Position& pos) const{
+inline bool Sheet::IsPositionInsideSheet(const Position& pos) const{
 
     if  (  pos.row < static_cast<int>(cells_.size()) 
         && pos.col < static_cast<int>(cells_[pos.row].size())){
@@ -15,6 +15,10 @@ inline bool Sheet::CheckCellPosition(const Position& pos) const{
     }
 
     return false;
+}
+
+void Sheet::MakeEmptyCell(Position pos){
+    cells_[pos.row][pos.col] = std::make_unique<Cell>(*this); 
 }
 
 void Sheet::SetCell(Position pos, std::string text) { 
@@ -39,7 +43,7 @@ const CellInterface* Sheet::GetCell(Position pos) const {
 
     if (pos.IsValid()) {
         
-        if (CheckCellPosition(pos)
+        if (IsPositionInsideSheet(pos)
             && cells_[pos.row][pos.col].get()->GetText() != "") {
       
             return cells_[pos.row][pos.col].get();
@@ -57,7 +61,7 @@ CellInterface* Sheet::GetCell(Position pos) {
     
     if (pos.IsValid()) {
         
-        if (CheckCellPosition(pos)
+        if (IsPositionInsideSheet(pos)
             && cells_[pos.row][pos.col].get()->GetText() != "") {
       
             return cells_[pos.row][pos.col].get();
@@ -75,7 +79,7 @@ void Sheet::ClearCell(Position pos) {
     
     if (pos.IsValid()) {
         
-        if (CheckCellPosition(pos)
+        if (IsPositionInsideSheet(pos)
             && cells_[pos.row][pos.col]) {
             
             cells_[pos.row][pos.col]->Clear();

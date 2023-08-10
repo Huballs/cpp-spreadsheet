@@ -300,6 +300,7 @@ void TestCellReferences() {
     ASSERT_EQUAL(sheet->GetCell("B2"_pos)->GetReferencedCells(), std::vector{"A1"_pos});
  
     sheet->SetCell("B2"_pos, "=B1");
+    auto b = sheet->GetCell("B1"_pos)->GetReferencedCells();
     ASSERT(sheet->GetCell("B1"_pos)->GetReferencedCells().empty());
     ASSERT_EQUAL(sheet->GetCell("B2"_pos)->GetReferencedCells(), std::vector{"B1"_pos});
  

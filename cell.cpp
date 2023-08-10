@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <optional>
+#include <limits>
 
 #include "cell.h"
 
@@ -76,10 +77,18 @@ Cell::Value Cell::FormulaImpl::GetValue() const {
     auto result = formula_ptr_->Evaluate(sheet_);
     
     if (std::holds_alternative<double>(result)) {
-        return std::get<double>(result);
-    } else {
-        return std::get<FormulaError>(result);  
-    }       
+
+        double number = std::get<double>(result);
+
+        if(number == std::numeric_limits<double>::infinity()
+        || number == -std::numeric_limits<double>::infinity())
+            return FormulaError(FormulaError::Category::Div0);
+        else
+            return number;
+    } 
+        
+    return std::get<FormulaError>(result);  
+         
 }
 
 std::string Cell::FormulaImpl::GetText() const {
