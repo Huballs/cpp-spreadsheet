@@ -18,21 +18,47 @@ inline bool Sheet::IsPositionInsideSheet(const Position& pos) const{
 }
 
 void Sheet::MakeEmptyCell(Position pos){
-    cells_[pos.row][pos.col] = std::make_unique<Cell>(*this); 
+    cells_[pos.row][pos.col] = MakeEmptyCell(); 
+}
+
+CellPtr Sheet::MakeEmptyCell(){
+    return std::make_shared<Cell>(*this);
+}
+
+void Sheet::DeleteCell(CellPtr& cell, Position pos){
+
+    if(!(pos == Position::NONE)){
+        pos_to_refs.erase(pos);
+
+        auto it = cell_to_deps.find(cell);
+
+        if((it != cell_to_deps.end()) 
+        && (it->second.empty())){
+            cell_to_deps.erase(it);
+        }
+    }
+
+    cell.reset();
 }
 
 void Sheet::SetCell(Position pos, std::string text) { 
     
     if (pos.IsValid()) { 
-        
+
+        auto cell = MakeEmptyCell();
+
+        cell->Set(std::move(text));
+
+        SetCellRefs(cell, pos);
+        SetCellDependants(cell, pos);
+
         cells_.resize(std::max(pos.row + 1, static_cast<int>(cells_.size())));
         cells_[pos.row].resize(std::max(pos.col + 1, static_cast<int>(cells_[pos.row].size())));
 
-        if (!cells_[pos.row][pos.col]) {
-            cells_[pos.row][pos.col] = std::make_unique<Cell>(*this);            
-        }
+        if (cells_[pos.row][pos.col])
+            DeleteCell(cells_[pos.row][pos.col], pos);
 
-        cells_[pos.row][pos.col]->Set(std::move(text));
+        cells_[pos.row][pos.col] = cell;
         
     } else {
         throw InvalidPositionException("On SetCell");

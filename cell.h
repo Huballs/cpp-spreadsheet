@@ -5,6 +5,10 @@
 #include "common.h"
 #include "formula.h"
 
+class Cell;
+
+using CellPtr = std::shared_ptr<Cell>;
+
 class Cell : public CellInterface {
 public:
     Cell(SheetInterface& sheet) : impl_(std::make_unique<EmptyImpl>()), sheet_(sheet) {}

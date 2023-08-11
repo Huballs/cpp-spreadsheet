@@ -6,7 +6,7 @@
 #include "cell.h"
 #include "common.h"
 
-using Table = std::vector<std::vector<std::unique_ptr<Cell>>>;
+using Table = std::vector<std::vector<CellPtr>>;
 
 class Sheet : public SheetInterface {
 public:
@@ -15,7 +15,7 @@ public:
     void SetCell(Position pos, std::string text) override;
 
     const CellInterface* GetCell(Position pos) const override;
-    CellInterface* GetCell(Position pos) override;
+          CellInterface* GetCell(Position pos) override;
 
     void ClearCell(Position pos) override;
 
@@ -26,25 +26,29 @@ public:
 
     bool IsPositionInsideSheet(const Position& pos) const;
 
-    void MakeEmptyCell(Position pos);
-
 private:
 	Table cells_;
-    std::map<Position, std::set<Position>> pos_to_refs;
-    std::map<Cell*, std::set<Cell*>> cell_to_deps;
 
-    void SetCellRefs(Cell* cell, Position pos){
+    std::map<Position, std::set<Position>> pos_to_refs;
+    std::map<CellPtr, std::set<CellPtr>> cell_to_deps;
+
+    void    MakeEmptyCell(Position pos);
+    CellPtr MakeEmptyCell();
+
+    void DeleteCell(CellPtr& cell, Position pos = Position::NONE);
+
+    void SetCellRefs(CellPtr cell, Position pos){
         std::set<Position> refs;
 
-        FillCellRefs(refs, cell);
+        FillCellRefs(refs, cell.get());
 
         pos_to_refs[pos] = std::move(refs);
     }
 
-    void SetCellDependants(Cell* cell, Position pos){
+    void SetCellDependants(CellPtr cell, Position pos){
         for(const auto ref_pos : pos_to_refs[pos]){
             cell_to_deps[
-                cells_[ref_pos.row][ref_pos.col].get()
+                cells_[ref_pos.row][ref_pos.col]
                 ].insert(cell);
         }
     }
