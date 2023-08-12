@@ -99,3 +99,6 @@ std::vector<Position> Cell::FormulaImpl::GetReferencedCells() const{
     return formula_ptr_->GetReferencedCells();
 }
 
+Position Cell::GetPosition() const{
+    return position_;
+}

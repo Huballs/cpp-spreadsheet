@@ -11,8 +11,12 @@ using CellPtr = std::shared_ptr<Cell>;
 
 class Cell : public CellInterface {
 public:
-    Cell(SheetInterface& sheet) : impl_(std::make_unique<EmptyImpl>()), sheet_(sheet) {}
+    Cell(SheetInterface& sheet, Position position = Position::NONE) 
+        : impl_(std::make_unique<EmptyImpl>()), sheet_(sheet), position_(position) {}
+   
     ~Cell() = default;
+
+    friend SheetInterface;
 
     void Set(std::string text);
     void Clear();
@@ -20,6 +24,8 @@ public:
     Value GetValue() const override;
     std::string GetText() const override;
     std::vector<Position> GetReferencedCells() const override;
+
+    Position GetPosition() const;
 
 private:
     
@@ -68,6 +74,8 @@ private:
     
     std::unique_ptr<Impl> impl_;
     SheetInterface& sheet_;
+
+    Position position_;
 
     FormulaInterface::Value cache_;
     bool isCacheValid = false;
