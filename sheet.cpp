@@ -6,25 +6,79 @@
 #include "sheet.h"
 #include "common.h"
 
+// --- Table ---
+
+CellPtr Table::operator()(Position pos){
+    ResizeToFit(pos);
+    return cells_[pos.row][pos.col];
+}
+
+inline void Table::SetCell(CellPtr cell){
+
+    Position pos = cell->GetPosition();
+
+    ResizeToFit(pos);
+    cells_[pos.row][pos.col] = cell;
+}
+
+inline void Table::DeleteCell(Position pos){
+    if(!IsPosInside(pos)){
+        throw InvalidPositionException("On Table::DeleteCell");
+    }
+    RemoveCellConnections(pos);
+    cells_[pos.row][pos.col].reset();
+}
+
+inline void Table::RemoveCellConnections(Position pos){
+
+    for(const auto& ref_pos : pos_to_refs[pos]){
+        cell_to_deps[ref_pos].erase(pos);
+    }
+    
+    pos_to_refs.erase(pos);
+}
+
+inline void Table::ResizeToFit(Position pos){
+    cells_.resize(std::max(pos.row + 1, static_cast<int>(cells_.size())));
+    cells_[pos.row].resize(std::max(pos.col + 1, static_cast<int>(cells_[pos.row].size())));
+}
+
+inline bool Table::IsPosInside(Position pos) const {
+    if  (  pos.row < static_cast<int>(cells_.size()) 
+        && pos.col < static_cast<int>(cells_[pos.row].size())){
+
+        return true;
+    }
+    return false;
+}
+
+
+// --- Sheet --
+
+CellPtr Sheet::MakeEmptyCell(Position pos){
+    return std::make_shared<Cell>(*this, pos);
+}
+
+
 void Sheet::SetCell(Position pos, std::string text) { 
     
     if (!pos.IsValid()) { 
         throw InvalidPositionException("On SetCell");
     }
 
-    auto cell = Table.MakeEmptyCell(pos);
+    auto cell = MakeEmptyCell(pos);
 
     cell->Set(std::move(text));
 
-    if(Table.IsCircularDependency(cell))
-        throw CircularDependencyException("Circular dependency!");
+    if(IsCircularDependency(cell))
+        throw CircularDependencyException("circular dependency detected");
 
-    if (Table(pos))
-        Table.DeleteCell(pos);
+    if (table_(pos))
+        table_.DeleteCell(pos);
 
-    Table.SetCellConnections(cell);
+    SetCellConnections(cell);
 
-    Table.SetCell(cell);
+    table_.SetCell(cell);
         
 }
 
@@ -33,10 +87,10 @@ const CellInterface* Sheet::GetCell(Position pos) const {
     if(!pos.IsValid())
         throw InvalidPositionException("On GetCell");
     
-    if (!Table.IsPosInside(pos))//  || cells_[pos.row][pos.col]->GetText() == "")
+    if (!table_.IsPosInside(pos))//  || cells_[pos.row][pos.col]->GetText() == "")
         return nullptr;
 
-    return Table.cells_[pos.row][pos.col].get();
+    return table_.cells_[pos.row][pos.col].get();
 }
 
 CellInterface* Sheet::GetCell(Position pos) {
@@ -44,10 +98,10 @@ CellInterface* Sheet::GetCell(Position pos) {
     if(!pos.IsValid())
         throw InvalidPositionException("On GetCell");
     
-    if (!Table.IsPosInside(pos))// || cells_[pos.row][pos.col]->GetText() == "")
+    if (!table_.IsPosInside(pos))// || cells_[pos.row][pos.col]->GetText() == "")
         return nullptr;
 
-    return Table.cells_[pos.row][pos.col].get();
+    return table_.cells_[pos.row][pos.col].get();
     
 }
 
@@ -56,12 +110,12 @@ void Sheet::ClearCell(Position pos) {
     if(!pos.IsValid())
         throw InvalidPositionException("On GetCell");
         
-    if (Table.IsPosInside(pos)
-        && Table(pos)) {
+    if (table_.IsPosInside(pos)
+        && table_(pos)) {
         
-        Table(pos)->Clear();
+        table_(pos)->Clear();
 
-        Table.RemoveCellConnections(pos);
+        table_.RemoveCellConnections(pos);
     }
         
 }
@@ -70,13 +124,13 @@ Size Sheet::GetPrintableSize() const {
     
     Size size;
     
-    for (int row = 0; row < static_cast<int>(Table.cells_.size()); ++row) {   
+    for (int row = 0; row < static_cast<int>(table_.cells_.size()); ++row) {   
 
-        for (int col = (static_cast<int>(Table.cells_[row].size()) - 1); col >= 0; --col) {
+        for (int col = (static_cast<int>(table_.cells_[row].size()) - 1); col >= 0; --col) {
   
-            if (Table.cells_[row][col]) {
+            if (table_.cells_[row][col]) {
                 
-                if (Table.cells_[row][col]->GetText().empty()) {
+                if (table_.cells_[row][col]->GetText().empty()) {
                     continue;
                 } 
 
@@ -98,11 +152,11 @@ void Sheet::PrintValues(std::ostream& output) const {
             if (col > 0) 
                 output << '\t';
             
-            if (col < static_cast<int>(Table.cells_[row].size())
-                && Table.cells_[row][col]) {                  
+            if (col < static_cast<int>(table_.cells_[row].size())
+                && table_.cells_[row][col]) {                  
 
                     std::visit([&output](const auto& obj){output << obj;}, 
-                                       Table.cells_[row][col]->GetValue());
+                                       table_.cells_[row][col]->GetValue());
             }
         }
         
@@ -118,10 +172,10 @@ void Sheet::PrintTexts(std::ostream& output) const {
             if (col > 0) 
                 output << '\t';
             
-            if (col < static_cast<int>(Table.cells_[row].size())
-                && Table.cells_[row][col]) {    
+            if (col < static_cast<int>(table_.cells_[row].size())
+                && table_.cells_[row][col]) {    
 
-                output << Table.cells_[row][col]->GetText();
+                output << table_.cells_[row][col]->GetText();
             }
         }
         
