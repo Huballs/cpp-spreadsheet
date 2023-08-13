@@ -88,7 +88,7 @@ const CellInterface* Sheet::GetCell(Position pos) const {
     if(!pos.IsValid())
         throw InvalidPositionException("On GetCell");
     
-    if (!table_.IsPosInside(pos))//  || cells_[pos.row][pos.col]->GetText() == "")
+    if (!table_.IsPosInside(pos))
         return nullptr;
 
     return table_.cells_[pos.row][pos.col].get();
@@ -99,7 +99,7 @@ CellInterface* Sheet::GetCell(Position pos) {
     if(!pos.IsValid())
         throw InvalidPositionException("On GetCell");
     
-    if (!table_.IsPosInside(pos))// || cells_[pos.row][pos.col]->GetText() == "")
+    if (!table_.IsPosInside(pos))
         return nullptr;
 
     return table_.cells_[pos.row][pos.col].get();
