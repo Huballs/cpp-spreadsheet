@@ -126,7 +126,7 @@ void Sheet::SetCellConnections(CellPtr cell){
     SetCellRefs(cell);
     SetCellDependants(cell);
 }
-
+ 
 void Sheet::InvalidateCacheOfDependants(Position pos){
 
     std::function<void (Position)> 
