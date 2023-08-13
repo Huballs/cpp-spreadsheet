@@ -109,15 +109,13 @@ CellInterface* Sheet::GetCell(Position pos) {
 void Sheet::ClearCell(Position pos) {
     
     if(!pos.IsValid())
-        throw InvalidPositionException("On GetCell");
+        throw InvalidPositionException("On ClearCell");
         
     if (table_.IsPosInside(pos)
         && table_(pos)) {
         
-        table_(pos)->Clear();
-
+        table_.DeleteCell(pos);
         InvalidateCacheOfDependants(pos);
-        table_.RemoveCellConnections(pos);
     }
         
 }
