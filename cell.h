@@ -1,13 +1,8 @@
 #pragma once
 
-
 #include <set>
 #include "common.h"
 #include "formula.h"
-
-class Cell;
-
-using CellPtr = std::shared_ptr<Cell>;
 
 class Cell : public CellInterface {
 public:
@@ -25,6 +20,8 @@ public:
     std::string GetText() const override;
     std::vector<Position> GetReferencedCells() const override;
 
+    void InvalidateCache();
+
     Position GetPosition() const;
 
 private:
@@ -35,6 +32,8 @@ private:
         virtual Value GetValue() const = 0;
         virtual std::string GetText() const = 0;
         virtual std::vector<Position> GetReferencedCells() const { return {};};
+
+        virtual void InvalidateCache(){};
         
         virtual ~Impl() = default;
     };
@@ -65,6 +64,11 @@ private:
         std::string GetText() const override;
 
         std::vector<Position> GetReferencedCells() const override;
+
+        void InvalidateCache() override;
+
+        mutable Cell::Value cache_;
+        mutable bool isCacheValid = false;
         
     private:
         std::unique_ptr<FormulaInterface> formula_ptr_;  
@@ -77,10 +81,6 @@ private:
 
     Position position_;
 
-    FormulaInterface::Value cache_;
-    bool isCacheValid = false;
-
-    void InvalidateCache();
     bool CheckCircularDependecy(Impl& impl);
 
 };

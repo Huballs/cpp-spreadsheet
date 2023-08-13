@@ -6,6 +6,8 @@
 #include "cell.h"
 #include "common.h"
 
+using CellPtr = std::shared_ptr<Cell>;
+
 struct Table{
 
     CellPtr operator()(Position pos);
@@ -47,66 +49,12 @@ private:
 
     CellPtr MakeEmptyCell(Position pos);
 
-    void SetCellConnections(CellPtr cell){
-        SetCellRefs(cell);
-        SetCellDependants(cell);
-    }
+    void SetCellConnections(CellPtr cell);
 
-    void SetCellRefs(CellPtr cell){
+    void InvalidateCacheOfDependants(Position pos);
 
-        for(const auto ref_pos : cell->GetReferencedCells()){
+    void SetCellRefs(CellPtr cell);
 
-            auto ref_cell = table_(ref_pos);
-
-            if(!ref_cell){
-                ref_cell = MakeEmptyCell(ref_pos);
-                table_.SetCell(ref_cell);
-            }
-
-            table_.pos_to_refs[cell->GetPosition()].insert(ref_pos);
-        }
-
-    }
-
-    void SetCellDependants(CellPtr cell){
-        for(const auto ref_pos : cell->GetReferencedCells()){
-            table_.cell_to_deps[ref_pos].insert(cell->GetPosition());
-        }
-    }
-
-    bool IsCircularDependency(CellPtr cell){
-
-        std::function<bool (Position, const std::vector<Position>&)> 
-            go_up = [&](Position pos, const std::vector<Position>& pos_to_find){
-
-            auto it = table_.cell_to_deps.find(pos);
-
-            if(it != table_.cell_to_deps.end()){
-
-                if(it->second.empty()){
-                    table_.cell_to_deps.erase(it);
-                    return false;
-                }
-
-                for(const auto dep_pos : it->second){
-
-                    auto predicate = [&dep_pos](const Position& lhs){ return lhs == dep_pos;};
-
-                    if (std::any_of(pos_to_find.begin(), pos_to_find.end(), predicate))
-                        return true;
-                    return go_up(dep_pos, pos_to_find);
-                }
-            }
-            return false;
-        };
-
-    for(const auto& ref_pos : cell->GetReferencedCells()){
-
-        if(ref_pos == cell->GetPosition())
-            return true;
-    }
-
-    return go_up(cell->GetPosition(), cell->GetReferencedCells());
-
-    }
+    void SetCellDependants(CellPtr cell);
+    bool IsCircularDependency(CellPtr cell);
 };

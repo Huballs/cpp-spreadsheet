@@ -355,6 +355,24 @@ void TestCellCircularReferences() {
 
     ASSERT(caught2);
     ASSERT_EQUAL(sheet->GetCell("M6"_pos)->GetText(), "Ready");
+
+}
+
+void TestCache(){
+    auto sheet = CreateSheet();
+    sheet->SetCell("A1"_pos, "=10/5");
+    sheet->SetCell("A2"_pos, "=5");
+    sheet->SetCell("A3"_pos, "=A1*A2");
+
+    ASSERT_EQUAL(sheet->GetCell("A3"_pos)->GetValue(), CellInterface::Value(10.0));
+
+    sheet->SetCell("A1"_pos, "=1");
+
+    ASSERT_EQUAL(sheet->GetCell("A3"_pos)->GetValue(), CellInterface::Value(5.0));
+
+    sheet->ClearCell("A1"_pos);
+
+    ASSERT_EQUAL(sheet->GetCell("A3"_pos)->GetValue(), CellInterface::Value(0.0));
 }
     
 }//end namespace
@@ -380,5 +398,6 @@ int main() {
     RUN_TEST(tr, TestCellReferences);
     RUN_TEST(tr, TestFormulaIncorrect);
     RUN_TEST(tr, TestCellCircularReferences);
+    RUN_TEST(tr, TestCache);
     return 0;
 }

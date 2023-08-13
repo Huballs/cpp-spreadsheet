@@ -19,6 +19,7 @@ void Cell::Set(std::string text) {
     } else {
         impl_ = std::move(std::make_unique<TextImpl>(std::move(text)));
     }
+    InvalidateCache();
 }
 
 void Cell::Clear() {
@@ -36,6 +37,10 @@ std::string Cell::GetText() const {
 std::vector<Position> Cell::GetReferencedCells() const {
     return impl_->GetReferencedCells();
 }
+
+void Cell::InvalidateCache(){
+    impl_->InvalidateCache();
+}   
 
 // --- Cell::EmptyImpl ---
 
@@ -73,21 +78,29 @@ std::string Cell::TextImpl::GetText() const {
 Cell::FormulaImpl::FormulaImpl(std::string text, SheetInterface& sheet) 
     : formula_ptr_(ParseFormula(text.substr(1))), sheet_(sheet) {}
 
-Cell::Value Cell::FormulaImpl::GetValue() const {             
+Cell::Value Cell::FormulaImpl::GetValue() const {   
+
+    if(isCacheValid){
+        return cache_;
+    }          
     auto result = formula_ptr_->Evaluate(sheet_);
     
     if (std::holds_alternative<double>(result)) {
 
         double number = std::get<double>(result);
-
+        
         if(number == std::numeric_limits<double>::infinity()
         || number == -std::numeric_limits<double>::infinity())
-            return FormulaError(FormulaError::Category::Div0);
+            cache_ = FormulaError(FormulaError::Category::Div0);
         else
-            return number;
-    } 
-        
-    return std::get<FormulaError>(result);  
+            cache_ = number;
+    } else {
+        cache_ = std::get<FormulaError>(result);
+    }
+
+    isCacheValid = true;
+
+    return cache_;  
          
 }
 
@@ -101,4 +114,8 @@ std::vector<Position> Cell::FormulaImpl::GetReferencedCells() const{
 
 Position Cell::GetPosition() const{
     return position_;
+}
+
+void Cell::FormulaImpl::InvalidateCache(){
+    isCacheValid = false;
 }
