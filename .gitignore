@@ -1,4 +1,6 @@
-/antlr4_runtime
+/spreadsheet/antlr4_runtime
+/spreadsheet/dist
 /build
 /dist
 /.vscode
+*.jar

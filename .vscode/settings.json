@@ -75,5 +75,6 @@
         "charconv": "cpp",
         "format": "cpp",
         "future": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "C:/Users/hugob/Documents/VsCode/cpp-spreadsheet/spreadsheet"
 }
