@@ -51,7 +51,7 @@ public:
     void PrintTexts(std::ostream& output) const override;
 
 private:
-	Table table_;
+    Table table_;
 
     CellPtr MakeEmptyCell(Position pos);
 
