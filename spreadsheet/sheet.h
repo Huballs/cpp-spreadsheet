@@ -2,7 +2,7 @@
 
 #include <functional>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include "cell.h"
 #include "common.h"
 
@@ -11,6 +11,7 @@ using CellPtr = std::shared_ptr<Cell>;
 struct Table{
 
     CellPtr operator()(Position pos);
+    const CellPtr operator()(Position pos) const;
 
     inline void SetCell(CellPtr cell);
 
@@ -18,13 +19,18 @@ struct Table{
 
     inline void RemoveCellConnections(Position pos);
 
-    inline void ResizeToFit(Position pos);
-    inline bool IsPosInside(Position pos) const;
+    struct PHasher {
+        size_t operator()(const Position& p) const {
+            return std::hash<size_t>()(
+                (static_cast<size_t>(p.row) << 32) | static_cast<size_t>(p.col)
+                );
+        }
+    };
 
-    std::vector<std::vector<CellPtr>> cells_;
+    std::unordered_map<Position, CellPtr, PHasher> cells_;
 
-    std::map<Position, std::set<Position>> pos_to_refs;
-    std::map<Position, std::set<Position>> cell_to_deps;
+    std::unordered_map<Position, std::set<Position>, PHasher> pos_to_refs;
+    std::unordered_map<Position, std::set<Position>, PHasher> cell_to_deps;
 
 };
 

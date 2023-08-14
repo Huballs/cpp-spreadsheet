@@ -378,6 +378,7 @@ void TestCache(){
 }//end namespace
  
 int main() {
+
     TestRunner tr;
     RUN_TEST(tr, TestPositionAndStringConversion);
     RUN_TEST(tr, TestPositionToStringInvalid);

@@ -76,5 +76,5 @@
         "format": "cpp",
         "future": "cpp"
     },
-    "cmake.sourceDirectory": "C:/Users/hugob/Documents/VsCode/cpp-spreadsheet/spreadsheet"
+    "cmake.sourceDirectory": "/home/john/vscode/cpp-spreadsheet/spreadsheet"
 }
